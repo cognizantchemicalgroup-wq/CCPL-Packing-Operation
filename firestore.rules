@@ -17,10 +17,7 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/companies/ccpl/users/$(request.auth.uid)).data.active == true;
     }
     function admin() { return activeUser() && request.auth.token.email == 'rupesh.mudlar@cognizantchemical.com'; }
-    function notResetting() {
-      return !exists(/databases/$(database)/documents/companies/ccpl/system/maintenance)
-        || get(/databases/$(database)/documents/companies/ccpl/system/maintenance).data.resetInProgress != true;
-    }
+
     match /companies/ccpl/users/{uid} {
       allow read: if allowedEmail() && (uid == request.auth.uid || admin());
       allow create: if allowedEmail() && uid == request.auth.uid
@@ -29,36 +26,19 @@ service cloud.firestore {
         && request.resource.data.role == (request.auth.token.email == 'rupesh.mudlar@cognizantchemical.com' ? 'admin' : 'staff');
       allow update, delete: if admin();
     }
-    match /companies/ccpl/stock/{docId} {
-      allow read: if activeUser();
-      allow create, update: if (activeUser() && notResetting()) || admin();
-      allow delete: if admin();
-    }
-    match /companies/ccpl/batches/{batchId} {
-      allow read: if activeUser();
-      allow create, update: if activeUser() && notResetting();
-      allow delete: if admin();
-    }
-    match /companies/ccpl/sales/{saleId} {
-      allow read: if activeUser();
-      allow create: if activeUser() && notResetting();
-      allow update: if admin() && notResetting();
-      allow delete: if admin();
-    }
-    match /companies/ccpl/activity/{eventId} {
-      allow read: if activeUser();
-      allow create: if (activeUser() && notResetting()) || admin();
-      allow update: if admin() && notResetting();
-      allow delete: if admin();
-    }
-    match /companies/ccpl/settings/{settingId} {
-      allow read: if activeUser();
-      allow write: if admin();
-    }
-    match /companies/ccpl/system/{docId} {
-      allow read: if activeUser();
-      allow write: if admin();
-    }
+
+    // Masters — any approved user can add / edit; only admin deletes
+    match /companies/ccpl/suppliers/{id}     { allow read, create, update: if activeUser(); allow delete: if admin(); }
+    match /companies/ccpl/products/{id}      { allow read, create, update: if activeUser(); allow delete: if admin(); }
+    match /companies/ccpl/packMaterials/{id} { allow read, create, update: if activeUser(); allow delete: if admin(); }
+
+    // Operations — same flow as CCPL Inventory V5
+    match /companies/ccpl/inwards/{id}      { allow read, create, update: if activeUser(); allow delete: if admin(); }
+    match /companies/ccpl/readyBatches/{id} { allow read, create, update: if activeUser(); allow delete: if admin(); }
+    match /companies/ccpl/packTxns/{id}     { allow read, create: if activeUser(); allow update, delete: if admin(); }
+    match /companies/ccpl/stock/{id}        { allow read, create, update: if activeUser(); allow delete: if admin(); }
+    match /companies/ccpl/counters/{id}     { allow read, create, update: if activeUser(); allow delete: if admin(); }
+
     match /{document=**} { allow read, write: if false; }
   }
 }

@@ -1,2 +1,486 @@
-<!doctype html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="theme-color" content="#102820"/><title>CCPL | Methanol Operations</title></head><body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>CCPL Operations System</title>
+  <style>
+
+:root{
+  --bg:#f3f5f8;--card:#ffffff;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;
+  --primary:#0f172a;--primary2:#1e293b;--accent:#2563eb;--success:#047857;
+  --warn:#b45309;--danger:#b91c1c;--soft:#eef2ff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.topbar{position:sticky;top:0;z-index:10;background:var(--primary);color:#fff;padding:18px 18px 16px;display:flex;justify-content:space-between;align-items:center}
+.topbar h1{font-size:22px;margin:2px 0 0}
+.eyebrow{font-size:10px;letter-spacing:.12em;font-weight:800;opacity:.72}
+.icon-btn{border:0;background:rgba(255,255,255,.12);color:#fff;border-radius:12px;width:42px;height:42px;font-size:20px}
+.shell{max-width:900px;margin:0 auto;padding:16px 16px 92px}
+.view{display:none}.view.active{display:block}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px;box-shadow:0 4px 18px rgba(15,23,42,.04)}
+.stat-card.warning{border-left:4px solid #f59e0b}
+.stat-card.success{border-left:4px solid #10b981}
+.stat-label{font-size:12px;color:var(--muted);font-weight:700}
+.stat-value{font-size:28px;font-weight:850;margin-top:5px}
+.primary{border:0;background:var(--primary);color:#fff;border-radius:14px;font-weight:800}
+.big-action{width:100%;min-height:54px;padding:14px 18px;font-size:16px;margin-top:14px}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin:24px 2px 10px}
+.section-head h2{font-size:17px;margin:0}
+.text-btn,.back-btn{border:0;background:transparent;color:var(--accent);font-weight:800}
+.back-btn{font-size:24px;color:var(--ink);padding:4px 12px 4px 0}
+.page-title{display:flex;align-items:center;margin-bottom:12px}
+.page-title h2{margin:2px 0 0;font-size:22px}
+.form-card,.detail-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 6px 24px rgba(15,23,42,.04)}
+.form-grid{display:grid;grid-template-columns:1fr;gap:12px}
+label{font-size:12px;font-weight:800;color:#374151;display:block}
+input,select{width:100%;margin-top:6px;padding:13px 12px;border:1px solid #d1d5db;border-radius:12px;background:#fff;color:var(--ink);outline:none}
+input:focus,select:focus{border-color:#64748b;box-shadow:0 0 0 3px rgba(100,116,139,.12)}
+.divider{height:1px;background:var(--line);margin:18px 0}
+.field-title{font-size:13px;font-weight:850;margin-bottom:9px}
+.segmented{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.seg{padding:11px 6px;border:1px solid #d1d5db;background:#fff;border-radius:10px;font-size:12px;font-weight:800}
+.seg.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.top-gap{margin-top:14px}
+.calc-panel{background:#f8fafc;border:1px dashed #cbd5e1;border-radius:14px;padding:14px;margin-top:14px}
+.calc-panel>div{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.calc-panel strong{font-size:20px}
+.calc-panel small{display:block;color:var(--muted);margin-top:6px}
+.file-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.file-box{border:1px dashed #cbd5e1;border-radius:12px;padding:14px;background:#fafafa;text-align:center}
+.file-box input{font-size:11px;border:0;padding:4px;margin-top:6px}
+.checkbox-row{display:flex;gap:10px;align-items:center;background:#f8fafc;border:1px solid var(--line);padding:13px;border-radius:12px}
+.checkbox-row input{width:auto;margin:0}
+.hidden{display:none!important}
+.list{display:grid;gap:10px}
+.list-item{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+.list-item:active{transform:scale(.997)}
+.item-title{font-weight:850}
+.item-sub{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}
+.badge{display:inline-flex;align-items:center;border-radius:999px;padding:6px 9px;font-size:10px;font-weight:850;white-space:nowrap}
+.badge.pending{background:#fffbeb;color:#92400e}
+.badge.review{background:#fef2f2;color:#991b1b}
+.badge.done{background:#ecfdf5;color:#065f46}
+.filters{display:grid;grid-template-columns:1fr;gap:9px;margin-bottom:12px}
+.detail-card{margin-bottom:12px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.kv span{display:block;font-size:11px;color:var(--muted);font-weight:700}
+.kv strong{display:block;margin-top:3px;font-size:14px;word-break:break-word}
+.recon{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:12px}
+.recon-row{display:flex;justify-content:space-between;padding:7px 0}
+.recon-row.total{border-top:1px solid var(--line);margin-top:5px;padding-top:11px;font-weight:850}
+.diff-short{color:var(--danger)} .diff-excess{color:var(--success)} .diff-match{color:var(--muted)}
+.inline-actions{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
+.secondary{border:1px solid #cbd5e1;background:#fff;border-radius:12px;padding:13px;font-weight:800}
+.danger{border:0;background:#991b1b;color:#fff;border-radius:12px;padding:13px;font-weight:800}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:env(safe-area-inset-bottom);z-index:20}
+.nav-item{border:0;background:#fff;color:var(--muted);padding:10px 6px 8px;font-size:11px;font-weight:800}
+.nav-item span{display:block;font-size:21px;line-height:20px;margin-bottom:3px}
+.nav-item.active{color:var(--primary)}
+.toast{position:fixed;left:50%;bottom:82px;transform:translate(-50%,20px);background:#111827;color:#fff;padding:12px 16px;border-radius:12px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:50;max-width:90%}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.empty{padding:28px;text-align:center;color:var(--muted);background:#fff;border:1px dashed #cbd5e1;border-radius:16px}
+@media(min-width:700px){
+  .stats-grid{grid-template-columns:repeat(4,1fr)}
+  .form-grid{grid-template-columns:repeat(2,1fr)}
+  .filters{grid-template-columns:1fr 220px}
+  .inline-actions{grid-template-columns:repeat(2,1fr)}
+}
+
+/* Packaging inventory */
+.pack-stock-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.pack-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px}
+.pack-card .qty{font-size:26px;font-weight:850;margin-top:4px}
+.pack-card.low{border-left:4px solid #f59e0b}.pack-card.ok{border-left:4px solid #10b981}
+.mini{font-size:11px;color:var(--muted);margin-top:3px}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.tabs button{border:1px solid #cbd5e1;background:#fff;border-radius:11px;padding:10px 6px;font-weight:800;font-size:12px}
+.tabs button.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.consume-preview{background:#f8fafc;border:1px dashed #cbd5e1;border-radius:14px;padding:13px;margin-top:12px}
+.consume-preview div{display:flex;justify-content:space-between;padding:5px 0}
+@media(min-width:700px){.pack-stock-grid{grid-template-columns:repeat(4,1fr)}}
+.ready-summary{background:#eef6ff;border:1px solid #bfdbfe;border-radius:16px;padding:14px;margin:12px 0}.ready-summary strong{font-size:24px}.ready-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.small-btn{border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:8px 10px;font-weight:800;font-size:12px}.small-btn.primary-mini{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* ---- Additions: masters, sold summary, sign-in (same tokens as above) ---- */
+.top-actions{display:flex;gap:8px}
+.tabs.three{grid-template-columns:repeat(3,1fr)}
+.ready-summary.sold{background:#ecfdf5;border-color:#a7f3d0}
+.sold-rows{margin-top:8px;display:grid;gap:3px}
+.sold-rows div{display:flex;justify-content:space-between;font-size:13px}
+.tag{display:inline-flex;border-radius:999px;padding:3px 8px;font-size:10px;font-weight:850;background:var(--soft);color:#3730a3;margin-left:6px;vertical-align:middle}
+.form-grid.one{grid-template-columns:1fr!important}
+.auth-screen{position:fixed;inset:0;z-index:100;background:var(--bg);overflow:auto}
+.auth-top{background:var(--primary);color:#fff;padding:22px 18px 70px}
+.auth-top h1{font-size:22px;margin:2px 0 0}
+.auth-card{max-width:440px;margin:-50px auto 24px;width:calc(100% - 32px)}
+.auth-msg{margin-top:12px;padding:11px 12px;border-radius:12px;font-size:13px;background:#fef2f2;color:#991b1b}
+.auth-msg.ok{background:#ecfdf5;color:#065f46}
+.auth-links{display:flex;justify-content:space-between;margin-top:12px;gap:10px;flex-wrap:wrap}
+.danger-text{color:var(--danger)}
+
+</style>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">COGNIZANT CHEMICAL PVT. LTD.</div>
+        <h1>CCPL Operations System</h1>
+        <div style="font-size:11px;opacity:.72;margin-top:3px;font-weight:700;letter-spacing:.03em">Inventory • Laboratory • Chemicals • Packaging</div>
+        <div id="dbStatus" style="font-size:10px;opacity:.8;margin-top:4px;font-weight:700">Database: connecting...</div>
+      </div>
+      <div class="top-actions"><button class="icon-btn hidden" id="resetDemoBtn" title="Reset all data (admin only)">↻</button><button class="icon-btn" id="signOutBtn" title="Sign out">⎋</button></div>
+    </header>
+
+    <main class="shell">
+      <section id="dashboardView" class="view active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Today's Inwards</div>
+            <div class="stat-value" id="todayInwards">0</div>
+          </div>
+          <div class="stat-card warning">
+            <div class="stat-label">Kanta Pending</div>
+            <div class="stat-value" id="kantaPending">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">GRN Pending</div>
+            <div class="stat-value" id="grnPending">0</div>
+          </div>
+          <div class="stat-card success">
+            <div class="stat-label">GRN Completed</div>
+            <div class="stat-value" id="grnCompleted">0</div>
+          </div>
+        </div>
+
+        <div class="section-head"><h2>Packaging Stock</h2><button class="text-btn" data-go="packagingView">Open</button></div>
+        <div id="dashboardPackaging" class="pack-stock-grid"></div>
+        <div class="ready-summary" id="dashSold"></div>
+
+        <button class="primary big-action" data-go="newInwardView">＋ New Inward</button>
+
+        <div class="section-head">
+          <h2>Recent Inwards</h2>
+          <button class="text-btn" data-go="inwardsView">View all</button>
+        </div>
+        <div id="recentInwards" class="list"></div>
+      </section>
+
+      <section id="newInwardView" class="view">
+        <div class="page-title">
+          <button class="back-btn" data-go="dashboardView">←</button>
+          <div>
+            <div class="eyebrow">NEW MATERIAL INWARD</div>
+            <h2>Receive material</h2>
+          </div>
+        </div>
+
+        <form id="inwardForm" class="form-card">
+          <div class="form-grid">
+            <label>
+              Supplier
+              <select id="supplier" required></select>
+            </label>
+
+            <label>
+              Product
+              <select id="product" required></select>
+            </label>
+
+            <label>
+              Vehicle No.
+              <input id="vehicleNo" placeholder="MH46AB1234" required />
+            </label>
+
+            <label>
+              Invoice / Challan No.
+              <input id="invoiceNo" placeholder="Invoice number" required />
+            </label>
+
+            <label>
+              Supplier Lot No.
+              <input id="supplierLot" placeholder="Optional" />
+            </label>
+
+            <label>
+              Receiving Location
+              <select id="location" required></select>
+            </label>
+          </div>
+
+          <div class="divider"></div>
+
+          <div id="receivedAsBlock">
+            <div class="field-title">Received as</div>
+            <div class="segmented" id="packingType">
+              <button type="button" class="seg active" data-type="DRUMS">Drums</button>
+              <button type="button" class="seg" data-type="IBC">IBC</button>
+              <button type="button" class="seg" data-type="TANKER">Tanker</button>
+              <button type="button" class="seg" data-type="OTHER">Other</button>
+            </div>
+          </div>
+
+          <div id="packingFields" class="form-grid top-gap"></div>
+
+          <div class="calc-panel">
+            <div>
+              <span id="declaredLabel">Declared Quantity</span>
+              <strong id="declaredQtyText">0 kg</strong>
+            </div>
+            <small id="declaredHelper">Calculated automatically from packing.</small>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="field-title">Documents</div>
+          <div class="file-grid">
+            <label class="file-box">
+              <span>📄 Invoice / Challan</span>
+              <input type="file" id="invoiceFile" accept="image/*,.pdf" />
+            </label>
+            <label class="file-box">
+              <span>🧪 Supplier COA</span>
+              <input type="file" id="coaFile" accept="image/*,.pdf" />
+            </label>
+          </div>
+
+          <div class="top-gap">
+            <label class="checkbox-row">
+              <input type="checkbox" id="kantaAvailable" />
+              <span>Kanta slip is available now</span>
+            </label>
+          </div>
+
+          <div id="instantKantaFields" class="form-grid top-gap hidden">
+            <label>
+              Gross Weight (kg)
+              <input type="number" step="0.01" id="grossWeightNow" />
+            </label>
+            <label>
+              Tare Weight (kg)
+              <input type="number" step="0.01" id="tareWeightNow" />
+            </label>
+          </div>
+
+          <button type="submit" class="primary big-action top-gap">Receive Material</button>
+        </form>
+      </section>
+
+      <section id="inwardsView" class="view">
+        <div class="page-title">
+          <button class="back-btn" data-go="dashboardView">←</button>
+          <div>
+            <div class="eyebrow">INWARD REGISTER</div>
+            <h2>All inwards</h2>
+          </div>
+        </div>
+
+        <div class="filters">
+          <input id="searchInward" placeholder="Search inward, supplier, product, invoice..." />
+          <select id="statusFilter">
+            <option value="ALL">All statuses</option>
+            <option value="KANTA_PENDING">Kanta Pending</option>
+            <option value="GRN_PENDING">GRN Pending</option>
+            <option value="GRN_COMPLETED">GRN Completed</option>
+          </select>
+        </div>
+
+        <div id="inwardsList" class="list"></div>
+      </section>
+
+      <section id="packagingView" class="view">
+        <div class="page-title">
+          <button class="back-btn" data-go="dashboardView">←</button>
+          <div><div class="eyebrow">PACKAGING INVENTORY</div><h2>Packaging stock & outward</h2></div>
+        </div>
+
+        <div id="packStockCards" class="pack-stock-grid"></div>
+
+        <div class="ready-summary">
+          <div class="stat-label">TOTAL READY TO DISPATCH</div>
+          <strong id="readyTotalBoxes">0 boxes</strong>
+          <div class="mini" id="readyTotalSub">Packed finished boxes physically available for dispatch.</div>
+        </div>
+        <div class="ready-summary sold" id="soldSummary"></div>
+
+        <div class="tabs top-gap" id="packTabs">
+          <button type="button" class="active" data-pack-tab="READY">Ready</button>
+          <button type="button" data-pack-tab="OUTWARD">Dispatch</button>
+          <button type="button" data-pack-tab="INWARD">Packaging Inward</button>
+          <button type="button" data-pack-tab="REGISTER">Register</button>
+        </div>
+
+        <div id="packReadyPanel">
+          <form id="packReadyForm" class="form-card">
+            <div class="field-title">Add Ready to Dispatch</div>
+            <div class="form-grid">
+              <label>Material in Box<select id="readyMaterial" required></select></label>
+              <label>Batch No.<input id="readyBatchNo" placeholder="e.g. RM2608001"></label>
+              <label>Packing Standard<select id="readyContainer" required></select></label>
+              <label>Boxes Ready<input id="readyBoxes" type="number" min="1" step="1" required placeholder="450"></label>
+              <label>Location<input id="readyLocation" placeholder="Patalganga / Filling Area"></label>
+              <label>Remarks<input id="readyRemarks" placeholder="Optional"></label>
+            </div>
+            <div class="consume-preview" id="readyConsumptionPreview"></div>
+            <button type="submit" class="primary big-action">Mark Boxes Ready</button>
+          </form>
+          <div class="section-head"><h2>Ready Queue</h2></div>
+          <div id="readyQueue" class="list"></div>
+        </div>
+
+        <div id="packOutwardPanel" class="hidden">
+          <form id="packOutwardForm" class="form-card">
+            <div class="field-title">Dispatch Ready Boxes</div>
+            <div class="form-grid">
+              <label>Ready Batch<select id="dispatchReadyId" required></select></label>
+              <label>Invoice / Challan No.<input id="packOutInvoice" required placeholder="Invoice number"></label>
+              <label>Boxes to Dispatch<input id="packOutBoxes" type="number" min="1" step="1" required placeholder="300"></label>
+              <label>Vehicle No.<input id="packOutVehicle" placeholder="MH46AB1234"></label>
+              <label>From Company / Location<input id="packOutFrom" placeholder="CCPL / Patalganga"></label>
+              <label>To Company / Location<input id="packOutTo" placeholder="Intercompany receiver"></label>
+            </div>
+            <div class="consume-preview" id="packConsumptionPreview"></div>
+            <button type="submit" class="primary big-action">Dispatch Boxes</button>
+          </form>
+        </div>
+
+        <div id="packInwardPanel" class="hidden">
+          <form id="packInwardForm" class="form-card">
+            <div class="field-title">Packaging Material Inward</div>
+            <div class="form-grid">
+              <label>Invoice / Challan No.<input id="packInInvoice" required></label>
+              <label>Item<select id="packInItem" required></select></label>
+              <label>Quantity (Nos.)<input id="packInQty" type="number" min="1" step="1" required></label>
+              <label>Supplier<input id="packInSupplier" list="supplierDatalist" placeholder="Supplier name"></label>
+              <datalist id="supplierDatalist"></datalist>
+            </div>
+            <button type="submit" class="primary big-action">Add Packaging Stock</button>
+          </form>
+        </div>
+
+        <div id="packRegisterPanel" class="hidden">
+          <div class="filters"><input id="packSearch" placeholder="Search invoice, item, inward/outward..."></div>
+          <div id="packRegister" class="list"></div>
+        </div>
+      </section>
+
+      <section id="mastersView" class="view">
+        <div class="page-title">
+          <button class="back-btn" data-go="dashboardView">←</button>
+          <div><div class="eyebrow">MASTERS</div><h2>Suppliers, products & packaging</h2></div>
+        </div>
+
+        <div class="tabs three" id="masterTabs">
+          <button type="button" class="active" data-master-tab="SUP">Suppliers</button>
+          <button type="button" data-master-tab="PROD">Products</button>
+          <button type="button" data-master-tab="PACK">Packaging Material</button>
+        </div>
+
+        <div id="mSupPanel">
+          <form id="supplierForm" class="form-card">
+            <div class="field-title">Add New Supplier</div>
+            <div class="form-grid">
+              <label>Supplier Name<input id="supName" required placeholder="e.g. Gujarat Alkalies"></label>
+              <label>GSTIN / Contact<input id="supInfo" placeholder="Optional"></label>
+            </div>
+            <button type="submit" class="primary big-action">Add Supplier</button>
+          </form>
+          <div class="section-head"><h2>Suppliers</h2></div>
+          <div id="supplierList" class="list"></div>
+        </div>
+
+        <div id="mProdPanel" class="hidden">
+          <form id="productForm" class="form-card">
+            <div class="field-title">Add New Product</div>
+            <div class="form-grid">
+              <label>Product Name<input id="prodName" required placeholder="e.g. Ethyl Acetate"></label>
+              <label>Density (kg/L)<input id="prodDensity" type="number" min="0" step="0.001" required placeholder="0.902"></label>
+            </div>
+            <div class="mini" style="margin-top:8px">Density converts litres to kg on inward and outward.</div>
+            <button type="submit" class="primary big-action">Add Product</button>
+          </form>
+          <div class="section-head"><h2>Products</h2></div>
+          <div id="productList" class="list"></div>
+        </div>
+
+        <div id="mPackPanel" class="hidden">
+          <form id="packMatForm" class="form-card">
+            <div class="field-title" id="packMatTitle">Add New Packaging Material</div>
+            <div class="form-grid">
+              <label>Material Name<input id="pmName" required placeholder="e.g. 5 L Can, 1 L Bottle"></label>
+              <label>Type
+                <select id="pmRole">
+                  <option value="container">Container – holds material (bottle / can)</option>
+                  <option value="accessory">Box accessory (box / plate / thermocol)</option>
+                </select>
+              </label>
+              <label id="pmCapWrap">Standard Packing Capacity (per piece)<input id="pmCapacity" type="number" min="0" step="0.001" placeholder="2.5"></label>
+              <label id="pmUnitWrap">Capacity Unit<select id="pmUnit"><option value="L">Litres</option><option value="kg">kg</option></select></label>
+              <label><span id="pmPerBoxLabel">Pieces per Box</span><input id="pmPerBox" type="number" min="0" step="1" required placeholder="4"></label>
+              <label>Low Stock Alert (Nos.)<input id="pmLow" type="number" min="0" step="1" value="50"></label>
+            </div>
+            <div class="calc-panel" id="pmPreview"></div>
+            <div class="inline-actions">
+              <button type="submit" class="primary big-action" id="pmSubmit">Add Packaging Material</button>
+              <button type="button" class="secondary big-action hidden" id="pmCancel">Cancel Edit</button>
+            </div>
+          </form>
+          <div class="section-head"><h2>Packaging Materials</h2></div>
+          <div id="packMatList" class="list"></div>
+        </div>
+      </section>
+
+      <section id="detailView" class="view">
+        <div class="page-title">
+          <button class="back-btn" data-go="inwardsView">←</button>
+          <div>
+            <div class="eyebrow">INWARD DETAILS</div>
+            <h2 id="detailTitle">—</h2>
+          </div>
+        </div>
+        <div id="detailBody"></div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button data-go="dashboardView" class="nav-item active"><span>⌂</span>Home</button>
+      <button data-go="newInwardView" class="nav-item"><span>＋</span>Inward</button>
+      <button data-go="inwardsView" class="nav-item"><span>▤</span>Register</button>
+      <button data-go="packagingView" class="nav-item"><span>▦</span>Packaging</button>
+      <button data-go="mastersView" class="nav-item"><span>⚙</span>Masters</button>
+    </nav>
+
+    <div id="toast" class="toast"></div>
+  </div>
+
+    <div id="authScreen" class="auth-screen">
+      <div class="auth-top">
+        <div class="eyebrow">COGNIZANT CHEMICAL PVT. LTD.</div>
+        <h1>CCPL Operations System</h1>
+        <div style="font-size:11px;opacity:.72;margin-top:3px;font-weight:700;letter-spacing:.03em">Inventory • Laboratory • Chemicals • Packaging</div>
+      </div>
+      <form id="authForm" class="form-card auth-card">
+        <div class="field-title" id="authTitle">Sign in</div>
+        <div class="form-grid one">
+          <label>Approved work email<input id="authEmail" type="email" autocomplete="username" required></label>
+          <label id="authPassWrap">Password<input id="authPass" type="password" autocomplete="current-password"></label>
+        </div>
+        <div id="authMsg" class="auth-msg hidden"></div>
+        <button type="submit" class="primary big-action" id="authSubmit">Sign In</button>
+        <div class="auth-links">
+          <button type="button" class="text-btn" id="authToggle">Forgot password?</button>
+          <button type="button" class="text-btn hidden" id="authResend">Resend verification email</button>
+        </div>
+      </form>
+    </div>
+
+
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
